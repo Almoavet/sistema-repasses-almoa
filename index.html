@@ -139,8 +139,7 @@ async function salvarLancamento(){
  const base={data_execucao:$('data').value||new Date().toISOString().slice(0,10),veterinario_id:vet,paciente:$('paciente').value,tutor:$('tutor').value,origem:$('origem').value,especie:$('especie').value,porte:$('porte').value};
  const itens=atendimentoItens.map(it=>({...base, procedimento:it.procedimento, valor:it.valor, quantidade:it.quantidade, percentual:it.percentual, repasse:it.repasse}));
  try{for(const item of itens){await api('/lancamentos',{method:'POST',body:JSON.stringify(item)});} limparLancamento(); await load(); show('lancamentos'); alert('Atendimento salvo com '+itens.length+' item(ns).');}
- catch(e){alert('Erro ao salvar atendimento:
-'+JSON.stringify(e));}
+ catch(e){alert('Erro ao salvar atendimento:\n'+JSON.stringify(e));}
 }
 function limparLancamento(){['paciente','tutor','procedimento','valor','observacao'].forEach(id=>{if($(id)) $(id).value='';}); if($('quantidade')) $('quantidade').value=1; atendimentoItens=[]; renderItensAtendimento();}
 async function excluirFiltrados(){
@@ -190,7 +189,5 @@ function bindEvents(){
 document.addEventListener('DOMContentLoaded',()=>{bindEvents(); load();});
 })();
 </script>
-</body>
-</html>
 </body>
 </html>
