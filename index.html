@@ -42,12 +42,9 @@ function valorPetlove(proc, especie, porte){
  return Number(p[key] ?? p.valor ?? 0);
 }
 function atualizarValorPorProcedimento(){
- const proc=$('procedimento')?.value;
- if(!proc){ updateItemPreview(); return; }
+ const proc=$('procedimento')?.value; if(!proc) return;
  const v=valorPetlove(proc,$('especie')?.value,$('porte')?.value);
- if(v!==null && !Number.isNaN(v) && $('valor')) $('valor').value = v.toFixed(2);
- setPercentualSugerido();
- updateItemPreview();
+ if(v!==null && !Number.isNaN(v)) $('valor').value = v.toFixed(2);
 }
 function setStatus(msg,type='info'){
  const el=$('status'); if(el){el.textContent=msg; el.className='status '+(type==='ok'?'ok':type==='err'?'err':'');}
@@ -159,9 +156,24 @@ async function salvarLancamento(){
  if(!atendimentoItens.length){ const item=itemFromForm(); if(item) atendimentoItens.push(item); }
  if(!atendimentoItens.length) return alert('Adicione pelo menos um procedimento ao atendimento.');
  const base={data_execucao:$('data').value||new Date().toISOString().slice(0,10),veterinario_id:vet,paciente:$('paciente').value,tutor:$('tutor').value,origem:$('origem').value,especie:$('especie').value,porte:$('porte').value};
- const itens=atendimentoItens.map(it=>({...base, procedimento:it.procedimento, valor:it.valor, quantidade:it.quantidade, percentual:it.percentual, repasse:it.repasse}));
- try{for(const item of itens){await api('/lancamentos',{method:'POST',body:JSON.stringify(item)});} limparLancamento(); await load(); show('lancamentos'); alert('Atendimento salvo com '+itens.length+' item(ns).');}
- catch(e){alert('Erro ao salvar atendimento:\n'+JSON.stringify(e));}
+ const itens=atendimentoItens.map(it=>({
+   ...base,
+   procedimento:it.procedimento,
+   valor:it.total, // no banco, valor = total do item, para manter compatibilidade com a tabela atual
+   quantidade:it.quantidade,
+   percentual:it.percentual,
+   repasse:it.repasse
+ }));
+ try{
+   for(const item of itens){
+     await api('/lancamentos',{method:'POST',body:JSON.stringify(item)});
+   }
+   limparLancamento(); await load(); show('lancamentos'); alert('Atendimento salvo com '+itens.length+' item(ns).');
+ }
+ catch(e){
+   const msg = e && e.message ? e.message : JSON.stringify(e);
+   alert('Erro ao salvar atendimento: '+msg+'\n\nSe aparecer erro 42501, rode as políticas de INSERT/SELECT no Supabase.');
+ }
 }
 function limparLancamento(){['paciente','tutor','procedimento','valor','observacao'].forEach(id=>{if($(id)) $(id).value='';}); if($('quantidade')) $('quantidade').value=1; if($('percentual')) $('percentual').value=5; atendimentoItens=[]; updateItemPreview(); renderItensAtendimento();}
 async function excluirFiltrados(){
